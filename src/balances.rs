@@ -7,8 +7,7 @@ pub struct Pallet<T: Config> {
 	balances: BTreeMap<T::AccountId, T::Balance>,
 }
 
-pub trait Config {
-	type AccountId: Ord + Clone;
+pub trait Config: crate::system::Config {
 	type Balance: Zero + CheckedSub + CheckedAdd + Copy;
 }
 
@@ -44,8 +43,13 @@ mod tests {
 
 	struct TestConfig;
 	impl super::Config for TestConfig {
-		type AccountId = String;
 		type Balance = u32;
+	}
+
+	impl crate::system::Config for TestConfig {
+		type AccountId = String;
+		type Nonce = u32;
+		type BlockNumber = u32;
 	}
 
 	#[test]
