@@ -24,7 +24,7 @@ impl<T: Config> Pallet<T> {
 		*self.balances.get(who).unwrap_or(&T::Balance::zero())
 	}
 
-	pub fn transfer(&mut self, caller: T::AccountId, to: T::AccountId, amount: T::Balance) -> Result<(), &'static str> {
+	pub fn transfer(&mut self, caller: T::AccountId, to: T::AccountId, amount: T::Balance) -> crate::support::DispatchResult {
 		let caller_balance = self.balance(&caller);
 		let to_balance = self.balance(&to);
 
