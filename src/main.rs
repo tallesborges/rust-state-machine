@@ -14,7 +14,9 @@ mod types {
 	pub type Block = crate::support::Block<Header, Extrinsic>;
 }
 
-pub enum RuntimeCall {}
+pub enum RuntimeCall {
+	BalancesTransfer { to: types::AccountId, amount: types::Balance },
+}
 
 #[derive(Debug)]
 pub struct Runtime {
@@ -60,7 +62,13 @@ impl crate::support::Dispatch for Runtime {
 	type Call = RuntimeCall;
 
 	fn dispatch(&mut self, caller: Self::Caller, call: Self::Call) -> support::DispatchResult {
-		todo!()
+		match call {
+			RuntimeCall::BalancesTransfer { to, amount } => {
+				self.balances.transfer(caller, to, amount)?;
+			},
+		}
+
+		Ok(())
 	}
 }
 
