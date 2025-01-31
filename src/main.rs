@@ -49,7 +49,10 @@ impl Runtime {
 		for (i, support::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
 			self.system.inc_nonce(&caller);
 			let _ = self.dispatch(caller, call).map_err(|e| {
-				eprintln!("Extrinsic Error\n\tBlockNumber: {}\n\tExtrinsic Number: {}\n\tError: {}", block.header.block_number, i, e)
+				eprintln!(
+					"Extrinsic Error\n\tBlockNumber: {}\n\tExtrinsic Number: {}\n\tError: {}",
+					block.header.block_number, i, e
+				)
 			});
 		}
 
@@ -78,22 +81,29 @@ fn main() {
 	let bob = "bob".to_string();
 	let charlie = "charlie".to_string();
 
+	// setup
 	runtime.balances.set_balance(&alice.clone(), 100);
 
-	runtime.system.inc_block_number();
+	let block_1 = types::Block {
+		header: support::Header { block_number: 1 },
+		extrinsics: vec![
+			support::Extrinsic {
+				caller: alice.clone(),
+				call: RuntimeCall::BalancesTransfer { to: bob.clone(), amount: 30 },
+			},
+			support::Extrinsic {
+				caller: alice.clone(),
+				call: RuntimeCall::BalancesTransfer { to: charlie.clone(), amount: 30 },
+			},
+		],
+	};
+
+	runtime.execute_block(block_1).expect("invalid block");
+
 	assert_eq!(runtime.system.block_number(), 1);
-
-	runtime.system.inc_nonce(&alice);
-	let _ = runtime
-		.balances
-		.transfer(alice.clone(), bob.clone(), 30)
-		.map_err(|e| eprintln!("{}", e));
-
-	runtime.system.inc_nonce(&alice);
-	let _ = runtime
-		.balances
-		.transfer(alice.clone(), charlie.clone(), 20)
-		.map_err(|e| eprintln!("{}", e));
+	assert_eq!(runtime.balances.balance(&alice), 40);
+	assert_eq!(runtime.balances.balance(&bob), 30);
+	assert_eq!(runtime.balances.balance(&charlie), 30);
 
 	println!("{:#?}", runtime);
 }
