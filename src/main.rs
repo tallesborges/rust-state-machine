@@ -2,6 +2,8 @@ mod balances;
 mod support;
 mod system;
 
+use crate::support::Dispatch;
+
 mod types {
 	pub type AccountId = String;
 	pub type Balance = u128;
@@ -33,6 +35,32 @@ impl balances::Config for Runtime {
 impl Runtime {
 	fn new() -> Self {
 		Self { system: system::Pallet::new(), balances: balances::Pallet::new() }
+	}
+
+	fn execute_block(&mut self, block: types::Block) -> support::DispatchResult {
+		self.system.inc_block_number();
+
+		if self.system.block_number() != block.header.block_number {
+			return Err("Invalid block number");
+		}
+
+		for (i, support::Extrinsic { caller, call }) in block.extrinsics.into_iter().enumerate() {
+			self.system.inc_nonce(&caller);
+			let _ = self.dispatch(caller, call).map_err(|e| {
+				eprintln!("Extrinsic Error\n\tBlockNumber: {}\n\tExtrinsic Number: {}\n\tError: {}", block.header.block_number, i, e)
+			});
+		}
+
+		Ok(())
+	}
+}
+
+impl crate::support::Dispatch for Runtime {
+	type Caller = <Runtime as system::Config>::AccountId;
+	type Call = RuntimeCall;
+
+	fn dispatch(&mut self, caller: Self::Caller, call: Self::Call) -> support::DispatchResult {
+		todo!()
 	}
 }
 
