@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, env::consts::OS};
+use std::collections::BTreeMap;
 
 use num::{CheckedAdd, CheckedSub, Zero};
 
