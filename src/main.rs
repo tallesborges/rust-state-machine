@@ -108,11 +108,28 @@ fn main() {
 	};
 
 	runtime.execute_block(block_1).expect("invalid block");
-
 	assert_eq!(runtime.system.block_number(), 1);
 	assert_eq!(runtime.balances.balance(&alice), 40);
 	assert_eq!(runtime.balances.balance(&bob), 30);
 	assert_eq!(runtime.balances.balance(&charlie), 30);
+
+	let block_2 = types::Block {
+		header: support::Header { block_number: 2 },
+		extrinsics: vec![
+			support::Extrinsic {
+				caller: bob.clone(),
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "content" }),
+			},
+			support::Extrinsic {
+				caller: charlie.clone(),
+				call: RuntimeCall::ProofOfExistence(proof_of_existence::Call::CreateClaim { claim: "content" }),
+			},
+		],
+	};
+
+	runtime.execute_block(block_2).expect("invalid block");
+	assert_eq!(runtime.system.block_number(), 2);
+	assert_eq!(runtime.proof_of_existence.get_claim(&"content"), Some(&bob));
 
 	println!("{:#?}", runtime);
 }
